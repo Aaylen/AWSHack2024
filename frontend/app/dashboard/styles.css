@@ -1,0 +1,127 @@
+/* dashboard.css */
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background-color: #1c1c1c; /* Dark background */
+    color: #f5f5f5; /* Light text for contrast */
+}
+
+.dashboard-container {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.header {
+    width: 100%; /* Ensure header spans full width */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 2rem;
+    background-color: #333;
+    color: white;
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.header-user {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.header-logout {
+    background: transparent;
+    border: 1px solid white;
+    color: white;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background-color 0.3s ease;
+}
+
+.header-logout:hover {
+    background-color: #555;
+}
+
+.main {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr 2fr 1fr; /* 3 columns */
+    gap: 1rem;
+    padding: 2rem;
+}
+
+.column {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.column-center {
+    background-color: #2b2b2b; /* Dark gray background */
+    color: white;
+    border-radius: 8px;
+    padding: 2rem;
+    max-width: 600px;
+    width: 100%;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    overflow-y: auto;
+}
+
+.chat-box {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    gap: 1rem;
+}
+
+.chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    max-height: 400px;
+    padding: 1rem;
+    background-color: #1c1c1c; /* Match page background */
+    border: 1px solid #555; /* Subtle border */
+    border-radius: 4px;
+}
+
+.chat-messages div {
+    margin-bottom: 0.5rem;
+    padding: 0.5rem;
+    background-color: #444; /* Darker gray for messages */
+    color: white;
+    border-radius: 4px;
+}
+
+.chat-input-container {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.chat-input {
+    flex: 1;
+    padding: 0.5rem;
+    border: 1px solid #555;
+    border-radius: 4px;
+    background-color: #333;
+    color: white;
+}
+
+.chat-input::placeholder {
+    color: #888;
+}
+
+.chat-send-button {
+    padding: 0.5rem 1rem;
+    background-color: #0066cc;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.chat-send-button:hover {
+    background-color: #005bb5;
+}
