@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { auth } from '../../lib/firebaseConfig';
 import { GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, onAuthStateChanged } from 'firebase/auth';
+import './styles.css';
 
 export default function Login() {
     const [email, setEmail] = useState('');
@@ -49,21 +50,19 @@ export default function Login() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="Email"
-                    className="p-2 border border-gray-300 rounded"
                 />
                 <input
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="Password"
-                    className="p-2 border border-gray-300 rounded"
                 />
-                <button type="submit" className="p-2 bg-blue-500 text-white rounded">
+                <button type="submit">
                     Login
                 </button>
             </form>
 
-            <button onClick={handleGoogleLogin} className="mt-4 p-2 bg-red-500 text-white rounded">
+            <button onClick={handleGoogleLogin}>
                 Sign in with Google
             </button>
         </div>
