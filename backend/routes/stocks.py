@@ -1,5 +1,8 @@
 from flask import Blueprint, jsonify, request
 import yfinance as yf
+import requests
+
+
 
 stocks = Blueprint('stocks', __name__)
 
@@ -11,8 +14,18 @@ def post_endpoint():
             calculateAverage(data)
         if data['action'] == 'bestDays':
             pass
-    
-    return jsonify(data) 
+        if data['action'] == 'displayStock':
+            displayStock(data)
+
+
+def displayStock(data):
+    tickerSymbol = data['stock']
+    stock = yf.Ticker(tickerSymbol)
+    time_series = data['Time Series (Daily)']
+    df = pd.DataFrame.from_dict(time_series, orient = 'index', dtype = float)
+    df.index = pd.to_dateTime(df.index)
+    df.sort_index(inplace = True)
+    df = df[['4. close']].rename(columns = {'4. close': 'Close})'})
 
 def calculateAverage(data):
     tickerSymbol = data['stock']
