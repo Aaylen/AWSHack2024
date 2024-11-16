@@ -40,30 +40,33 @@ export default function Login() {
     };
 
     return (
-        <div className="flex flex-col items-center justify-center min-h-screen py-2">
-            <h1 className="text-4xl mb-4">Login</h1>
+        <div className="flex flex-col items-center justify-center min-h-screen py-2 bg-gray-800">
+            <h1 className="text-4xl mb-4 font-light text-white">Login</h1>
 
-            <form onSubmit={handleLogin} className="flex flex-col gap-4">
+            <form onSubmit={handleLogin} className="flex flex-col gap-4 w-full max-w-sm">
                 <input
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="Email"
-                    className="p-2 border border-gray-300 rounded"
+                    className="p-2 border border-gray-300 rounded bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
                 <input
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="Password"
-                    className="p-2 border border-gray-300 rounded"
+                    className="p-2 border border-gray-300 rounded bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
-                <button type="submit" className="p-2 bg-blue-500 text-white rounded">
+                <button type="submit" className="p-2 border border-gray-300 text-gray-800 bg-white rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
                     Login
                 </button>
             </form>
 
-            <button onClick={handleGoogleLogin} className="mt-4 p-2 bg-red-500 text-white rounded">
+            <button
+                onClick={handleGoogleLogin}
+                className="mt-4 p-2 border border-gray-300 text-gray-800 bg-white rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
                 Sign in with Google
             </button>
         </div>
