@@ -15,6 +15,7 @@ const BalanceSheetWidget = ({ ticker }) => {
                     return response.json();
                 })
                 .then((data) => {
+                    console.log(data);
                     setBalanceSheet(data);
                     setLoading(false);
                 })
