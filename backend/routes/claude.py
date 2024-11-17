@@ -22,6 +22,14 @@ try:
 except Exception as e:
     raise RuntimeError(f"Failed to configure AWS Bedrock client: {e}")
 
+@claude.route('/reset', methods=['POST'])
+def reset_conversation():
+    """
+    Resets the conversation history.
+    """
+    global conversation_history
+    conversation_history = []  # Clear the conversation history
+    return jsonify({"message": "Conversation history has been reset."}), 200
 
 def send_message_to_claude(user_message):
     """
