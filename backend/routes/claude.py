@@ -52,11 +52,11 @@ def analyze():
         print("User question:", user_question)
         prompt = f"""
         Correlate the user's question with a stock ticker symbol. 
-        Give a one word response with that ticker symbol.
+        Give a one word response with that ticker symbol in all capital letters.
         If there is no related stock ticker symbol, respond with 'none'.
         {user_question}
         """
-        ticker = send_message_to_claude(prompt).lower().strip()
+        ticker = send_message_to_claude(prompt).upper().strip()
         print("Ticker:", ticker)
         # Route request
         prompt = f"""

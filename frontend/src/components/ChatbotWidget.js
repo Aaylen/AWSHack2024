@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
+import GlobalContext from '../context/GlobalContext';
 import './ChatbotWidget.css';
 
 const ChatbotWidget = () => {
     const [messages, setMessages] = useState([]);
-    const [loading, setLoading] = useState(false); // For loading bubble
+    const [loading, setLoading] = useState(false);
+    const { setTicker } = useContext(GlobalContext);
 
-    // Add a new message to the chat
     const addMessage = (message) => {
         setMessages((prevMessages) => [...prevMessages, message]);
     };
@@ -13,14 +14,10 @@ const ChatbotWidget = () => {
     const handleSendMessage = async (input) => {
         if (!input.trim()) return;
 
-        // Add the user's message
         addMessage({ text: input, user: 'You' });
-
-        // Show the loading bubble
         setLoading(true);
 
         try {
-            // Send input to backend
             const response = await fetch('http://127.0.0.1:5000/claude/analyze', {
                 method: 'POST',
                 headers: {
@@ -29,9 +26,12 @@ const ChatbotWidget = () => {
                 body: JSON.stringify({ question: input }),
             });
 
-            // Handle AI response
             if (response.ok) {
                 const data = await response.json();
+                // Update the ticker if it's included in the response
+                if (data.ticker) {
+                    setTicker(data.ticker);
+                }
                 addMessage({ text: data.response, user: 'AI' });
             } else {
                 addMessage({ text: 'Error: Failed to fetch AI response.', user: 'AI' });
@@ -39,7 +39,6 @@ const ChatbotWidget = () => {
         } catch (error) {
             addMessage({ text: `Error: ${error.message}`, user: 'AI' });
         } finally {
-            // Hide the loading bubble
             setLoading(false);
         }
     };
@@ -47,7 +46,7 @@ const ChatbotWidget = () => {
     const handleInputKeyDown = (e) => {
         if (e.key === 'Enter') {
             handleSendMessage(e.target.value);
-            e.target.value = ''; // Clear the input
+            e.target.value = '';
         }
     };
 
@@ -55,7 +54,7 @@ const ChatbotWidget = () => {
         const inputField = document.getElementById('chat-input');
         if (inputField.value.trim()) {
             handleSendMessage(inputField.value);
-            inputField.value = ''; // Clear the input
+            inputField.value = '';
         }
     };
 
