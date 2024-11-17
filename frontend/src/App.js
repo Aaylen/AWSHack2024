@@ -1,6 +1,6 @@
 import React from 'react';
 import ChatbotWidget from './components/ChatbotWidget';
-import StockChart from './components/generateStockChart.jsx';
+import StockChart from './components/generateStockChart.js';
 import './App.css';
 
 const App = () => {
