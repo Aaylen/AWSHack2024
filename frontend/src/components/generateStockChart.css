@@ -1,12 +1,15 @@
 /* styles.css */
+@import url('https://fonts.googleapis.com/css2?family=Host+Grotesk:wght@400;700&display=swap');
 
 /* General container */
 .stock-chart-container {
+  font-family: 'Host Grotesk', sans-serif;
   width: 100%;
   padding: 1rem;
   background-color: white;
-  border-radius: 0.5rem;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border-radius: 20px;
+  border: 1px solid #ddd;
+  /* box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); */
 }
 
 /* Title and price section */
