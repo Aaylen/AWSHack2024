@@ -5,8 +5,7 @@ import './ChatbotWidget.css';
 const ChatbotWidget = () => {
     const [messages, setMessages] = useState([]);
     const [loading, setLoading] = useState(false);
-    const { setTicker } = useContext(GlobalContext);
-    const { setScore } = useContext(GlobalContext);
+    const { setTicker, setScore } = useContext(GlobalContext);
 
     const addMessage = (message) => {
         setMessages((prevMessages) => [...prevMessages, message]);
@@ -29,12 +28,12 @@ const ChatbotWidget = () => {
 
             if (response.ok) {
                 const data = await response.json();
-                // Update the ticker if it's included in the response
                 if (data.ticker) {
                     setTicker(data.ticker);
                 }
                 if (data.score) {
-                    setScore(data.score);
+                    const score = typeof data.score === 'number' ? data.score : parseFloat(data.score);
+                    setScore(score);
                 }
                 addMessage({ text: data.response, user: 'AI' });
             } else {
@@ -62,6 +61,35 @@ const ChatbotWidget = () => {
         }
     };
 
+    const formatMessage = (text) => {
+        // Split the text by newlines and map each line to a paragraph or list item
+        return text.split('\n').map((line, index) => {
+            const trimmedLine = line.trim();
+            if (!trimmedLine) return <br key={index} />;
+            
+            // Check if the line is a bullet point
+            if (trimmedLine.startsWith('•')) {
+                return (
+                    <div key={index} className="bullet-point">
+                        {trimmedLine}
+                    </div>
+                );
+            }
+            
+            // Check if the line is a section header
+            if (trimmedLine.endsWith(':')) {
+                return (
+                    <div key={index} className="section-header">
+                        {trimmedLine}
+                    </div>
+                );
+            }
+            
+            // Regular text
+            return <div key={index} className="text-line">{trimmedLine}</div>;
+        });
+    };
+
     return (
         <div className="chatbot-widget">
             <div className="chat-messages">
@@ -70,7 +98,9 @@ const ChatbotWidget = () => {
                         key={index}
                         className={`chat-message ${message.user === 'AI' ? 'ai-message' : 'user-message'}`}
                     >
-                        <div className="message-text">{message.text}</div>
+                        <div className="message-text">
+                            {message.user === 'AI' ? formatMessage(message.text) : message.text}
+                        </div>
                     </div>
                 ))}
                 {loading && (

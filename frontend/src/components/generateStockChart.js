@@ -4,6 +4,7 @@ import { Line } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';
 import './generateStockChart.css';
 import GlobalContext from '../context/GlobalContext';
+import Score from './score';
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
 const GenerateStockChart = ({ ticker }) => {
@@ -140,16 +141,21 @@ const GenerateStockChart = ({ ticker }) => {
         <div className="stock-chart-container">
             <div className="title-price-section">
                 <div className="flex">
-                    <h2>{ticker}</h2>
-                    {currentPrice && (
-                        <span className="price">${currentPrice.toFixed(2)}</span>
-                    )}
-                    &nbsp;
-                    {priceChange && percentChange && (
-                        <span className={`price-change ${priceChange >= 0 ? 'price-change-positive' : 'price-change-negative'}`}>
-                            {priceChange >= 0 ? '+' : ''}${priceChange.toFixed(2)} ({priceChange >= 0 ? '+' : ''}{percentChange.toFixed(2)}%)
-                        </span>
-                    )}
+                    <div className="price-info">
+                        <h2>{ticker}</h2>
+                        <div className="price-section">
+                            {currentPrice && (
+                                <span className="price">${currentPrice.toFixed(2)}</span>
+                            )}
+                            &nbsp;
+                            {priceChange && percentChange && (
+                                <span className={`price-change ${priceChange >= 0 ? 'price-change-positive' : 'price-change-negative'}`}>
+                                    {priceChange >= 0 ? '+' : ''}${priceChange.toFixed(2)} ({priceChange >= 0 ? '+' : ''}{percentChange.toFixed(2)}%)
+                                </span>
+                            )}
+                        </div>
+                    </div>
+                    <Score score={score} />
                 </div>
             </div>
 

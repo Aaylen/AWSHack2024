@@ -1,74 +1,142 @@
 @import url('https://fonts.googleapis.com/css2?family=Host+Grotesk:wght@400;700&display=swap');
 
-/* General container for the balance sheet */
-.balance-sheet-widget {
-  font-family: 'Host Grotesk', sans-serif;
-  width: 100%;
-  padding: 1rem;
-  background-color: white;
-  border-radius: 20px;
-  border: 1px solid #ddd;
-  /* box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); */
+.balance-sheet-container {
+    font-family: 'Host Grotesk', sans-serif;
+    width: 100%;
+    padding: 1rem;
+    background-color: white;
+    border-radius: 20px;
+    border: 1px solid #ddd;
 }
 
-/* Title */
-.balance-sheet-widget h2 {
-  font-size: 1.5rem;
-  font-weight: bold;
-  margin-bottom: 1rem;
-  color: #333;
-  text-align: center;
+.balance-sheet-title {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-bottom: 1rem;
+    color: #000000;
+    text-align: center;
 }
 
-/* Table styles */
-.balance-sheet-widget table {
-  width: 100%;
-  border-collapse: collapse;
-  text-align: left;
-  font-size: 1rem;
+.balance-sheet-subtitle {
+    color: #666;
+    margin-bottom: 20px;
+    font-size: 1.1rem;
+    font-weight: 400;
+    text-align: center;
 }
 
-.balance-sheet-widget th {
-  background-color: #f4f4f4;
-  padding: 0.75rem;
-  font-weight: bold;
-  color: #555;
+.table-container {
+    background: white;
+    border-radius: 20px;
+    overflow: hidden;
 }
 
-.balance-sheet-widget td {
-  padding: 0.75rem;
-  border-bottom: 1px solid #ddd;
-  color: #333;
+.balance-sheet-table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: white;
+    font-size: 1rem;
+    display: block;
+    overflow-x: auto;
 }
 
-.balance-sheet-widget tr:nth-child(even) {
-  background-color: #f9f9f9;
+.balance-sheet-table thead {
+    background-color: #f8f9fa;
+    border-bottom: 2px solid #dee2e6;
 }
 
-.balance-sheet-widget tr:hover {
-  background-color: #f1f1f1;
+.balance-sheet-table th {
+    background-color: #f4f4f4;
+    padding: 14px 16px;
+    text-align: left;
+    font-weight: bold;
+    color: #555;
 }
 
-/* No data message */
-.balance-sheet-widget p {
-  text-align: center;
-  font-size: 1rem;
-  color: #888;
-  margin-top: 1rem;
+.balance-sheet-table th:last-child {
+    text-align: right;
 }
 
-/* Table container for responsive behavior */
-.balance-sheet-widget table {
-  overflow-x: auto;
-  display: block;
+.balance-sheet-table tr:not(:last-child) {
+    border-bottom: 1px solid #eee;
 }
 
-/* Styling for data cells */
-.balance-sheet-widget td {
-  font-weight: 400;
+.balance-sheet-table tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+.balance-sheet-table td {
+    padding: 12px 16px;
+    border-bottom: 1px solid #ddd;
+    color: #333;
+    font-weight: 400;
+}
+
+.balance-sheet-table .label {
+    color: #333;
+    font-weight: 500;
+    width: 100%;
+}
+
+.balance-sheet-table .value {
+    text-align: right;
+    font-family: 'Monaco', 'Courier New', monospace;
+    color: #2c3e50;
+}
+
+.balance-sheet-table .negative {
+    color: #dc3545;
+}
+
+.highlight-row {
+    background-color: #f8f9fa;
+    font-weight: 600;
+}
+
+.highlight-row .label,
+.highlight-row .value {
+    font-weight: 600;
+}
+
+.balance-sheet-loading,
+.balance-sheet-error,
+.balance-sheet-empty {
+    text-align: center;
+    padding: 40px;
+    font-size: 1.1rem;
+    color: #666;
+}
+
+.balance-sheet-error {
+    color: #dc3545;
+}
+
+/* Hover effect */
+.balance-sheet-table tbody tr:hover {
+    background-color: #f1f1f1;
 }
 
 /* Highlight rows for better readability */
-.balance-sheet-widget tr:hover td {
-  background-color: #e6f7e6;
+.balance-sheet-table tbody tr:hover td {
+    background-color: #e6f7e6;
+}
+
+/* Responsive design */
+@media (max-width: 600px) {
+    .balance-sheet-container {
+        padding: 10px;
+    }
+
+    .balance-sheet-table td,
+    .balance-sheet-table th {
+        padding: 8px 12px;
+    }
+
+    .balance-sheet-title {
+        font-size: 1.4rem;
+    }
+
+    .balance-sheet-subtitle {
+        font-size: 1rem;
+    }
 }

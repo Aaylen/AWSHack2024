@@ -1,15 +1,19 @@
+@import url('https://fonts.googleapis.com/css2?family=Host+Grotesk:wght@400;700&display=swap');
+
 .cashflow-container {
-    padding: 20px;
-    max-width: 900px;
-    margin: 0 auto;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    font-family: 'Host Grotesk', sans-serif;
+    width: 100%;
+    padding: 1rem;
+    background-color: white;
+    border-radius: 20px;
+    border: 1px solid #ddd;
 }
 
 .cashflow-title {
-    color: #1a1a1a;
-    margin-bottom: 5px;
-    font-size: 1.8rem;
-    font-weight: 600;
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-bottom: 1rem;
+    color: #000000;
     text-align: center;
 }
 
@@ -23,8 +27,7 @@
 
 .table-container {
     background: white;
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 20px;
     overflow: hidden;
 }
 
@@ -32,6 +35,9 @@
     width: 100%;
     border-collapse: collapse;
     background-color: white;
+    font-size: 1rem;
+    display: block;
+    overflow-x: auto;
 }
 
 .cashflow-table thead {
@@ -40,10 +46,11 @@
 }
 
 .cashflow-table th {
+    background-color: #f4f4f4;
     padding: 14px 16px;
     text-align: left;
-    font-weight: 600;
-    color: #495057;
+    font-weight: bold;
+    color: #555;
 }
 
 .cashflow-table th:last-child {
@@ -54,14 +61,21 @@
     border-bottom: 1px solid #eee;
 }
 
+.cashflow-table tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
 .cashflow-table td {
     padding: 12px 16px;
+    border-bottom: 1px solid #ddd;
+    color: #333;
+    font-weight: 400;
 }
 
 .cashflow-table .label {
     color: #333;
     font-weight: 500;
-    width: 60%;
+    width: 100%;
 }
 
 .cashflow-table .value {
@@ -84,30 +98,27 @@
     font-weight: 600;
 }
 
-.cashflow-loading {
-    text-align: center;
-    padding: 40px;
-    color: #666;
-    font-size: 1.1rem;
-}
-
-.cashflow-error {
-    text-align: center;
-    padding: 40px;
-    color: #dc3545;
-    font-size: 1.1rem;
-}
-
+.cashflow-loading,
+.cashflow-error,
 .cashflow-empty {
     text-align: center;
     padding: 40px;
-    color: #666;
     font-size: 1.1rem;
+    color: #666;
+}
+
+.cashflow-error {
+    color: #dc3545;
 }
 
 /* Hover effect */
 .cashflow-table tbody tr:hover {
-    background-color: #f8f9fa;
+    background-color: #f1f1f1;
+}
+
+/* Highlight rows for better readability */
+.cashflow-table tbody tr:hover td {
+    background-color: #e6f7e6;
 }
 
 /* Responsive design */
@@ -115,12 +126,12 @@
     .cashflow-container {
         padding: 10px;
     }
-    
+
     .cashflow-table td,
     .cashflow-table th {
         padding: 8px 12px;
     }
-    
+
     .cashflow-title {
         font-size: 1.4rem;
     }

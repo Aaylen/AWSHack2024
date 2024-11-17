@@ -1,0 +1,39 @@
+.score-display {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .line-container {
+    position: relative;
+    width: 120px;
+    height: 40px; /* Adjusted height to allow space for the label above the line */
+  }
+  
+  .gradient-line {
+    width: 100%;
+    height: 10px;
+    background: linear-gradient(to right, red, green);
+    position: relative;
+    border-radius: 5px;
+  }
+  
+  .score-dot {
+    width: 10px;
+    height: 10px;
+    background-color: lightgreen;
+    border-color: black;
+    border-radius: 50%;
+    position: absolute;
+    /* top: -2px;  Adjust dot vertical position */
+    transition: left 0.2s ease;
+  }
+  
+  .label {
+    position: absolute;
+    top: -20px;  /* Adjust label position to be above the line */
+    left: 50%; /* Center the label horizontally */
+    transform: translateX(-50%); /* Ensure the label is centered above the line */
+    font-weight: bold;
+  }
+  

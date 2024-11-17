@@ -1,4 +1,3 @@
-/* styles.css */
 @import url('https://fonts.googleapis.com/css2?family=Host+Grotesk:wght@400;700&display=swap');
 
 /* General container */
@@ -15,6 +14,17 @@
 /* Title and price section */
 .title-price-section {
   margin-bottom: 1.5rem;
+}
+
+.title-price-section .flex {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.title-price-section .price-info {
+  display: flex;
+  flex-direction: column;
 }
 
 .title-price-section h2 {
@@ -36,6 +46,12 @@
 
 .price-change-negative {
   color: red;
+}
+
+/* Stock Score */
+.title-price-section .score {
+  font-size: 1rem;
+  font-weight: bold;
 }
 
 /* Timeframe buttons */
@@ -106,4 +122,3 @@
 .key-metrics .metric .value {
   font-weight: 500;
 }
-

@@ -18,6 +18,10 @@
   padding: 20px;
 }
 
+.left-column :nth-child(1) {
+  margin-bottom: 20px;
+}
+
 .right-column {
   width: 40%;
   display: flex;

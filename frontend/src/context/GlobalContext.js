@@ -7,18 +7,17 @@ const GlobalContext = createContext();
 // Provider component
 export function GlobalProvider({ children }) {
     const [ticker, setTicker] = useState('SPY');
-    const [score, setScore] = useState("90");
+    const [score, setScore] = useState(90);
+
     const value = {
         ticker,
-        setTicker
-    };
-    const scoreValue = {
-        score,
-        setScore
+        setTicker,
+        score,      // Add score to the context value
+        setScore    // Add setScore to the context value
     };
 
     return (
-        <GlobalContext.Provider value={value} scoreValue={scoreValue}>
+        <GlobalContext.Provider value={value}>
             {children}
         </GlobalContext.Provider>
     );

@@ -1,14 +1,9 @@
-import os
-import requests
-from datetime import datetime
-import yfinance as yf
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, request, jsonify
 import boto3
+import os
+import yfinance as yf
 
 claude = Blueprint('claude', __name__)
-
-# Initialize an in-memory conversation history
-conversation_history = []
 
 # AWS Bedrock Configuration
 try:
@@ -19,9 +14,9 @@ try:
         aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY"),
         aws_session_token=os.getenv("AWS_SESSION_TOKEN"),
     )
+    model_id = "anthropic.claude-3-sonnet-20240229-v1:0"
 except Exception as e:
     raise RuntimeError(f"Failed to configure AWS Bedrock client: {e}")
-
 
 def send_message_to_claude(user_message):
     """
@@ -30,7 +25,7 @@ def send_message_to_claude(user_message):
     conversation = [{"role": "user", "content": [{"text": user_message}]}]
     try:
         response = client.converse(
-            modelId="anthropic.claude-3-sonnet-20240229-v1:0",
+            modelId=model_id,
             messages=conversation,
             inferenceConfig={"maxTokens": 2000, "temperature": 0.5},
             additionalModelRequestFields={"top_k": 50},
@@ -39,49 +34,10 @@ def send_message_to_claude(user_message):
     except Exception as e:
         return f"ERROR: Unable to connect to Claude API. Details: {e}"
 
-
-def send_message_to_claude_with_memory(user_question):
-    if conversation_history:
-        history_context = "\n".join(
-            [f"Q: {item['question']}\nA: {item.get('response', 'No response provided.')}" for item in conversation_history]
-        )
-    else:
-        history_context = "No prior conversation history."
-
-    follow_up_prompt = f"""
-    The user has asked: "{user_question}"
-
-    Below is the previous conversation history:
-    {history_context}
-
-    Determine if this user's current question is a follow-up to any prior question in the conversation history.
-    Respond with 'Yes' if this question directly relates to any prior question, otherwise respond with 'No'.
-    If 'Yes', briefly answer their question or provide context. If 'No', respond with 'No follow-up relationship detected.'
-    also 30 word maximum limit 
-    """
-    
-    follow_up_response = send_message_to_claude(follow_up_prompt).strip()
-    is_follow_up = "yes" in follow_up_response.lower()
-    explanation = follow_up_response if is_follow_up else "No follow-up relationship detected."
-
-    conversation_history.append({
-        "question": user_question,
-        "follow_up_response": follow_up_response,
-        "is_follow_up": is_follow_up
-    })
-
-    return {
-        "follow_up": is_follow_up,
-        "follow_up_analysis": explanation,
-        "conversation_history": conversation_history
-    }
-
-
-
 @claude.route('/analyze', methods=['POST'])
 def analyze():
     """
-    Analyzes user input, checks for follow-up context, and processes financial data.
+    Analyzes user input and handles follow-up questions for the same stock.
     """
     try:
         data = request.get_json()
@@ -89,109 +45,96 @@ def analyze():
         if not user_question:
             return jsonify({"error": "No question provided"}), 400
 
-        # Check if the question is a follow-up
-        memory_check = send_message_to_claude_with_memory(user_question)
-
-        if memory_check.get("follow_up"):
+        # Check if the user is asking a follow-up question about the same stock
+        if hasattr(claude, 'current_stock') and claude.current_stock:
+            stock_data = claude.current_stock
+            follow_up_prompt = f"""
+            Based on the user's follow-up question: '{user_question}', 
+            and this data about {stock_data['ticker']}:
+            {stock_data['data']}
+            
+            Answer the user's question in a concise manner.
+            """
+            response = send_message_to_claude(follow_up_prompt)
             return jsonify({
-                "response": memory_check["follow_up_analysis"],
-                "conversation_history": memory_check["conversation_history"]
+                "response": response,
+                "ticker": stock_data["ticker"]
             })
 
-        # Process the question as a standalone request (if not a follow-up)
-        print("User question:", user_question)
+        # If no stock context exists, proceed with a new analysis
         prompt = f"""
-        Correlate the user's question with a stock ticker symbol.
-        Give a one-word response with that ticker symbol in all capital letters.
-        If there is no related stock ticker symbol, respond with 'Not-Here'.
-
+        Correlate the user's question with a stock ticker symbol. 
+        Give a one word response with that ticker symbol in all capital letters.
+        If there is no related stock ticker symbol, respond with 'none'.
         {user_question}
         """
         ticker = send_message_to_claude(prompt).upper().strip()
-        print("Ticker:", ticker)
+        if ticker == "NONE":
+            return jsonify({"response": "No related stock found", "ticker": ""})
 
-        if ticker == "NOT-HERE":
-            return jsonify({
-                "response": "No related stock ticker symbol found.",
-                "ticker": ""
-            })
+        # Fetch and analyze new stock data
+        data = get_stock_data(ticker)
+        claude.current_stock = {"ticker": ticker, "data": data}  # Store in variable for future use
+        
+        analysis_prompt = f"""
+        Analyze the health of {ticker} based on this data: {data}
+        Choose 3 statistics from the financial statements that stand out.
+        Format your response exactly like this, including the line breaks:
+        
+        Overall Assessment:
+        [One sentence summary of company's financial health]
+        
+        Key Metrics:
+        • [First statistic that stands out and its implication]
+        • [Second statistic that stands out and its implication]
+        • [Third statistic that stands out and its implication]
+        
+        Future Outlook:
+        [1-2 sentences about what the company should focus on]
 
-        # Fetch financial data using yfinance
-        try:
-            stock = yf.Ticker(ticker)
-            company_name = stock.info.get("shortName", "Unknown Company")
-            current_price = stock.info.get("currentPrice", "N/A")
-            market_cap = stock.info.get("marketCap", "N/A")
-            pe_ratio = stock.info.get("trailingPE", "N/A")
-            dividend_yield = stock.info.get("dividendYield", "N/A")
-            summary = stock.info.get("longBusinessSummary", "No summary available.")
-
-            # Fetch cash flow, income statement, and balance sheet details
-            cash_flow_text = "\n".join(
-                [f"{row['index']}: {', '.join(f'{k}: {v}' for k, v in row.items() if k != 'index')}" for row in stock.cashflow.reset_index().to_dict(orient="records")[:3]]
-            ) if not stock.cashflow.empty else "No cash flow data available."
-
-            income_statement_text = "\n".join(
-                [f"{row['index']}: {', '.join(f'{k}: {v}' for k, v in row.items() if k != 'index')}" for row in stock.income_stmt.reset_index().to_dict(orient="records")[:3]]
-            ) if not stock.income_stmt.empty else "No income statement data available."
-
-            balance_sheet_text = "\n".join(
-                [f"{row['index']}: {', '.join(f'{k}: {v}' for k, v in row.items() if k != 'index')}" for row in stock.balance_sheet.reset_index().to_dict(orient="records")[:3]]
-            ) if not stock.balance_sheet.empty else "No balance sheet data available."
-
-            # Prepare financial data prompt for Claude
-            financial_data = f"""
-            Company Name: {company_name}
-            Current Price: {current_price}
-            Market Cap: {market_cap}
-            P/E Ratio: {pe_ratio}
-            Dividend Yield: {dividend_yield}
-            Summary: {summary}
-
-            Cash Flow:
-            {cash_flow_text}
-
-            Income Statement:
-            {income_statement_text}
-
-            Balance Sheet:
-            {balance_sheet_text}
-
-            Okay, your job is to state the pros and cons of the company and give a brief summary of the company's financial health
-            whilst stating statistics in number form given to you by the Yahoo Finance API - 25 words or less.
-            Give me an investment recommendation based on the data provided in a range from 1 to 100, REMEBR THE SCORE IS THE LAST TO BE MENTOINED
-            report the score like this score: 75
-            """
-        except Exception as data_error:
-            return jsonify({"error": f"Failed to retrieve financial data: {data_error}"}), 500
-
-        # Reflect on the financial data using Claude
-        reflection_prompt = f"""
-        Reflect on the financial health and performance of the company with the ticker symbol {ticker}.
-        Use the following financial data for context:
-        {financial_data}
-
-        Provide a concise reflection, summarizing the company's financial strengths, weaknesses, and overall outlook.
-        Limit the response to 3 sentences.
+        Score: [A score from 1-100, over 50 is bullish under 50 is bearish]
         """
-        response = send_message_to_claude(reflection_prompt)
-        score = response.split()[-1:]
-        words = response.split()
-
-# Remove the last two words
-        response = ' '.join(words[:-2])
+        response = send_message_to_claude(analysis_prompt)
+        sections = response.split('\n\n')
+        formatted_response = '\n\n'.join(section.strip() for section in sections if section.strip())
         
-        print(last_two_words)
-        
-        # Add the response to the conversation history
-        conversation_history.append({"question": user_question, "response": response})
-
+        # Extract score and delete it from the response
+        score_line = next((line for line in formatted_response.split("\n") if "Score:" in line), None)
+        score = None
+        if score_line:
+            score = score_line.split(":")[1].strip()
+            formatted_response = formatted_response.replace(score_line, "")  # Remove the score line
+        print(score)
         return jsonify({
-            "response": response,
+            "response": formatted_response,
             "ticker": ticker,
-            "conversation_history": conversation_history,
             "score": score
         })
-
     except Exception as e:
         return jsonify({"error": f"An unexpected error occurred: {e}"}), 500
+
+def get_stock_data(ticker):
+    """
+    Fetches financial data for a given stock ticker using yfinance.
+    """
+    try:
+        stock = yf.Ticker(ticker)
+        info = stock.info
+        
+        # Get key financial metrics
+        data = {
+            "company_name": info.get("shortName", "Unknown Company"),
+            "current_price": info.get("currentPrice", "N/A"),
+            "market_cap": info.get("marketCap", "N/A"),
+            "pe_ratio": info.get("trailingPE", "N/A"),
+            "dividend_yield": info.get("dividendYield", "N/A"),
+            "business_summary": info.get("longBusinessSummary", "No summary available"),
+            "sector": info.get("sector", "N/A"),
+            "industry": info.get("industry", "N/A"),
+            "52_week_high": info.get("fiftyTwoWeekHigh", "N/A"),
+            "52_week_low": info.get("fiftyTwoWeekLow", "N/A")
+        }
+        
+        return data
+    except Exception as e:
+        raise ValueError(f"Failed to fetch stock data: {e}")
