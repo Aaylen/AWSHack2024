@@ -14,12 +14,6 @@ const App = () => {
 
     return (
         <div className="app-container">
-            <header className="app-header">
-                <div className="header-content">
-                    <span>ProfitPilot</span>
-                    <img src={logo} alt="ProfitPilot Logo" className="app-logo" />
-                </div>
-            </header>
             <div className="content">
                 <div className="left-column max-h-screen sticky top-0 overflow-y-auto">
                     <StockChart ticker={ticker} />
