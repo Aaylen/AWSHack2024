@@ -1,171 +1,140 @@
 from flask import Blueprint, jsonify, request
+from flask_cors import CORS
 import yfinance as yf
 from datetime import datetime
 
-
 stocks = Blueprint('stocks', __name__)
+CORS(stocks)  # Enable CORS for this blueprint
 
-
-@stocks.route('/analyze', methods=['POST'])
-def analyze_request():
-    """
-    Flask endpoint to handle AI-specified stock analysis actions.
-    """
+@stocks.route('/endpoint', methods=['POST'])
+def post_endpoint():
     try:
         data = request.get_json()
+        
+        if not data:
+            return jsonify({'error': 'No data provided'}), 400
+            
         if 'action' not in data:
             return jsonify({'error': 'No action specified'}), 400
 
-
-        action = data['action']
-        if action == 'average_return':
-            result = average_return(data)
-        elif action == 'best_days':
-            result = best_days(data)
-        elif action == 'display_stock':
-            result = display_stock(data)
+        if data['action'] == 'display_stock':
+            return display_stock(data)
+        elif data['action'] == 'average_return':
+            return jsonify({'average_return': average_return(data)}), 200
+        elif data['action'] == 'best_days':
+            return jsonify({'best_days': best_days(data)}), 200
         else:
-            return jsonify({'error': f"Unknown action: {action}"}), 400
+            return jsonify({'error': 'Invalid action specified'}), 400
 
-
-        # Format the response for better AI interaction
-        response = {
-            "action": action,
-            "result": result
-        }
-        return jsonify(response), 200
-
-
-    except KeyError as e:
-        return jsonify({'error': f'Missing required field: {str(e)}'}), 400
     except Exception as e:
-        return jsonify({'error': f"An error occurred: {str(e)}"}), 500
-
-
-
+        return jsonify({'error': str(e)}), 500
 
 def display_stock(data):
-    """
-    Fetches stock data for the specified ticker and timeframe.
-    """
-    ticker_symbol = data.get('ticker', '').upper()
-    entry = data.get('entry', '1mo')
-   
-    if not ticker_symbol:
-        return {'error': 'Ticker symbol is required'}
-   
-    stock = yf.Ticker(ticker_symbol)
-
-
-    # Get key metrics (P/E, Market Cap)
-    key_metrics = {
-        'pe': stock.info.get('trailingPE', 'N/A'),
-        'marketCap': stock.info.get('marketCap', 'N/A'),
-    }
-
-
-    # Get historical data based on the timeframe
     try:
-        if entry == '5d':
-            historical_data = stock.history(period="5d")
-        elif entry == 'ytd':
-            today = datetime.now()
-            start_date = datetime(today.year, 1, 1)
+        if 'ticker' not in data or 'entry' not in data:
+            return jsonify({'error': 'Missing ticker or entry parameter'}), 400
+
+        ticker_symbol = data['ticker']
+        entry = data['entry']
+        
+        stock = yf.Ticker(ticker_symbol)
+        
+        # Get historical data based on the timeframe
+        if entry == 'ytd':
+            start_date = datetime(datetime.now().year, 1, 1)
             historical_data = stock.history(start=start_date)
+        elif entry in ['1d', '5d']:
+            # Use 5m intervals for 1d and 60m for 5d
+            interval = '5m' if entry == '1d' else '60m'
+            historical_data = stock.history(period=entry, interval=interval)
         else:
             historical_data = stock.history(period=entry)
 
+        # Format dates based on timeframe
+        if entry == '1d':
+            date_format = '%H:%M'  # Just show hours and minutes for 1d
+        elif entry == '5d':
+            date_format = '%m/%d %H:%M'  # Show date and time for 5d
+        else:
+            date_format = '%Y-%m-%d'  # Regular date format for other periods
 
-        # Parse historical data
-        dates = historical_data.index.strftime('%Y-%m-%d').tolist()
-        closing_prices = historical_data['Close'].tolist()
-        opening_prices = historical_data['Open'].tolist()
-        high_prices = historical_data['High'].tolist()
-        low_prices = historical_data['Low'].tolist()
-
-
-        return {
-            "dates": dates,
-            "closing_prices": closing_prices,
-            "opening_prices": opening_prices,
-            "high_prices": high_prices,
-            "low_prices": low_prices,
-            "key_metrics": key_metrics
+        # Format the response data
+        response_data = {
+            "dates": historical_data.index.strftime(date_format).tolist(),
+            "closing_prices": historical_data['Close'].tolist(),
+            "opening_prices": historical_data['Open'].tolist(),
+            "high_prices": historical_data['High'].tolist(),
+            "low_prices": historical_data['Low'].tolist(),
+            "key_metrics": {
+                'pe': format_metric(stock.info.get('trailingPE')),
+                'marketCap': format_metric(stock.info.get('marketCap')),
+                '52WeekHigh': format_metric(stock.info.get('fiftyTwoWeekHigh')),
+                '52WeekLow': format_metric(stock.info.get('fiftyTwoWeekLow')),
+                'beta': format_metric(stock.info.get('beta')),
+                'forwardPE': format_metric(stock.info.get('forwardPE')),
+                'priceToSales': format_metric(stock.info.get('priceToSalesTrailing12Months')),
+                'priceToBook': format_metric(stock.info.get('priceToBook')),
+                'dividendYield': format_metric(stock.info.get('dividendYield'))
+            }
         }
+        
+        return jsonify({'chart': response_data}), 200
+
     except Exception as e:
-        return {'error': f"Failed to retrieve data for {ticker_symbol}: {e}"}
+        return jsonify({'error': str(e)}), 500
 
-
+def format_metric(value):
+    """Formats values to the style guideline (in billions and minimal decimal places)."""
+    if value == 'N/A' or value is None:
+        return 'N/A'
+    if isinstance(value, (int, float)):
+        if value >= 1e9:
+            return f"${value / 1e9:.2f}B"
+        return f"{value:.2f}"
+    return value
 
 
 def average_return(data):
-    """
-    Calculates the average percentage return for a stock over a date range.
-    """
-    ticker_symbol = data.get('stock', '').upper()
-    start_date = data.get('start_date')
-    end_date = data.get('end_date')
-   
-    if not ticker_symbol or not start_date or not end_date:
-        return {'error': 'Stock symbol, start_date, and end_date are required'}
-
-
-    try:
-        stock = yf.Ticker(ticker_symbol)
-        historical_data = stock.history(start=start_date, end=end_date)
-
-
-        # Calculate the average percentage return
-        historical_data['Pct Change'] = historical_data['Close'].pct_change() * 100
-        avg_return = historical_data['Pct Change'].mean()
-        return {"average_return": avg_return}
-    except Exception as e:
-        return {'error': f"Failed to calculate average return: {e}"}
-
-
-
+    tickerSymbol = data['stock']
+    start_date = data['start_date']
+    end_date = data['end_date']
+    
+    # Get stock data for the given ticker and date range
+    stock = yf.Ticker(tickerSymbol)
+    historical_data = stock.history(start=start_date, end=end_date)
+    
+    # Calculate the average percentage return
+    historical_data['Pct Change'] = historical_data['Close'].pct_change() * 100
+    avg_return = historical_data['Pct Change'].mean()
+    
+    return float(avg_return)
 
 def best_days(data):
-    """
-    Finds the best trading days for a stock based on the highest percentage gains.
-    """
-    ticker_symbol = data.get('stock', '').upper()
-    start_date = data.get('start_date')
-    end_date = data.get('end_date')
-    days = int(data.get('days', 5))
-
-
-    if not ticker_symbol or not start_date or not end_date:
-        return {'error': 'Stock symbol, start_date, and end_date are required'}
-
-
-    try:
-        stock = yf.Ticker(ticker_symbol)
-        historical_data = stock.history(start=start_date, end=end_date)
-
-
-        # Calculate daily percentage changes
-        historical_data['Pct Change'] = historical_data['Close'].pct_change() * 100
-
-
-        # Add a column for the previous day's close
-        historical_data['Previous Close'] = historical_data['Close'].shift(1)
-
-
-        # Sort by percentage change
-        sorted_data = historical_data.sort_values(by='Pct Change', ascending=False).head(days)
-
-
-        # Prepare result
-        result = [
-            {
-                "date": date.strftime('%Y-%m-%d'),
-                "previous_close": row['Previous Close'],
-                "close": row['Close'],
-                "percentage_gain": row['Pct Change']
-            }
-            for date, row in sorted_data.iterrows()
-        ]
-        return result
-    except Exception as e:
-        return {'error': f"Failed to calculate best days: {e}"}
+    start_date = data['start_date']
+    end_date = data['end_date']
+    tickerSymbol = data['stock']
+    days = int(data['days'])
+    
+    # Get stock data for the given ticker and date range
+    stock = yf.Ticker(tickerSymbol)
+    historical_data = stock.history(start=start_date, end=end_date)
+    
+    # Calculate the daily percentage change in closing price
+    historical_data['Pct Change'] = historical_data['Close'].pct_change() * 100
+    
+    # Add a column for the previous day's close
+    historical_data['Previous Close'] = historical_data['Close'].shift(1)
+    
+    # Sort the data by the percentage change in descending order
+    sorted_data = historical_data.sort_values(by='Pct Change', ascending=False)
+    
+    # Get the top 'days' number of rows (days with the highest percentage gains)
+    top_days = sorted_data.head(days)
+    
+    # Create a list of tuples with date, previous close, close, and percentage gain
+    result = [
+        (date.strftime('%Y-%m-%d'), row['Previous Close'], row['Close'], row['Pct Change']) 
+        for date, row in top_days.iterrows()
+    ]
+    
+    return result
