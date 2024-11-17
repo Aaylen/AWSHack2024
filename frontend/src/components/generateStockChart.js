@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useContext, useState, useEffect } from 'react';
 import axios from 'axios';
 import { Line } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';
 import './generateStockChart.css';
-
+import GlobalContext from '../context/GlobalContext';
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
 const GenerateStockChart = ({ ticker }) => {
@@ -12,6 +12,7 @@ const GenerateStockChart = ({ ticker }) => {
     const [currentPrice, setCurrentPrice] = useState(null);
     const [priceChange, setPriceChange] = useState(null);
     const [percentChange, setPercentChange] = useState(null);
+    const { score } = useContext(GlobalContext);
 
     const formatDate = (dateStr) => {
         const date = new Date(dateStr);

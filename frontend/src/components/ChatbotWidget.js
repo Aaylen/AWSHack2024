@@ -6,6 +6,7 @@ const ChatbotWidget = () => {
     const [messages, setMessages] = useState([]);
     const [loading, setLoading] = useState(false);
     const { setTicker } = useContext(GlobalContext);
+    const { setScore } = useContext(GlobalContext);
 
     const addMessage = (message) => {
         setMessages((prevMessages) => [...prevMessages, message]);
@@ -31,6 +32,9 @@ const ChatbotWidget = () => {
                 // Update the ticker if it's included in the response
                 if (data.ticker) {
                     setTicker(data.ticker);
+                }
+                if (data.score) {
+                    setScore(data.score);
                 }
                 addMessage({ text: data.response, user: 'AI' });
             } else {
