@@ -22,14 +22,6 @@ try:
 except Exception as e:
     raise RuntimeError(f"Failed to configure AWS Bedrock client: {e}")
 
-@claude.route('/reset', methods=['POST'])
-def reset_conversation():
-    """
-    Resets the conversation history.
-    """
-    global conversation_history
-    conversation_history = []  # Clear the conversation history
-    return jsonify({"message": "Conversation history has been reset."}), 200
 
 def send_message_to_claude(user_message):
     """
@@ -49,38 +41,41 @@ def send_message_to_claude(user_message):
 
 
 def send_message_to_claude_with_memory(user_question):
-    """
-    Checks if the user's question is a follow-up based on the conversation history and processes it.
-    """
-    # Step 1: Check if this is a follow-up question
+    if conversation_history:
+        history_context = "\n".join(
+            [f"Q: {item['question']}\nA: {item.get('response', 'No response provided.')}" for item in conversation_history]
+        )
+    else:
+        history_context = "No prior conversation history."
+
     follow_up_prompt = f"""
     The user has asked: "{user_question}"
 
     Below is the previous conversation history:
-    {conversation_history if conversation_history else "No prior conversation history."}
+    {history_context}
 
-    Is the new question a follow-up to the previous conversation? if it is helpe the user limit of 30 words, 
-    please dont restate the question and say this is a 30 word repsonse 
+    Determine if this user's current question is a follow-up to any prior question in the conversation history.
+    Respond with 'Yes' if this question directly relates to any prior question, otherwise respond with 'No'.
+    If 'Yes', briefly answer their question or provide context. If 'No', respond with 'No follow-up relationship detected.'
+    also 30 word maximum limit 
     """
+    
     follow_up_response = send_message_to_claude(follow_up_prompt).strip()
-    print("Follow-Up Analysis Response:", follow_up_response)
+    is_follow_up = "yes" in follow_up_response.lower()
+    explanation = follow_up_response if is_follow_up else "No follow-up relationship detected."
 
-    # Step 2: Add new question to the conversation history
-    conversation_history.append({"question": user_question, "follow_up_response": follow_up_response})
+    conversation_history.append({
+        "question": user_question,
+        "follow_up_response": follow_up_response,
+        "is_follow_up": is_follow_up
+    })
 
-    # If the question is a follow-up, handle it accordingly
-    if "yes" in follow_up_response.lower():
-        return {
-            "follow_up": True,
-            "follow_up_analysis": follow_up_response,
-            "conversation_history": conversation_history
-        }
-
-    # If not a follow-up, proceed with the main analysis
     return {
-        "follow_up": False,
+        "follow_up": is_follow_up,
+        "follow_up_analysis": explanation,
         "conversation_history": conversation_history
     }
+
 
 
 @claude.route('/analyze', methods=['POST'])
@@ -180,13 +175,14 @@ def analyze():
         Limit the response to 3 sentences.
         """
         response = send_message_to_claude(reflection_prompt)
-        last_two_words = response.split()[-1:]
+        score = response.split()[-1:]
         words = response.split()
 
 # Remove the last two words
         response = ' '.join(words[:-2])
         
         print(last_two_words)
+        
         # Add the response to the conversation history
         conversation_history.append({"question": user_question, "response": response})
 
@@ -194,7 +190,7 @@ def analyze():
             "response": response,
             "ticker": ticker,
             "conversation_history": conversation_history,
-            "last_two_words": last_two_words
+            "score": score
         })
 
     except Exception as e:
