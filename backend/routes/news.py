@@ -1,62 +1,75 @@
-from flask import Blueprint, jsonify, request
 import requests
+from flask import Blueprint, jsonify, request
+import os
 
-# Create the Blueprint
+
 news = Blueprint('news', __name__)
 
-def fetch_recent_sentiment(api_key, topic, limit=1000):
+
+# Alpha Vantage News API Endpoint
+API_BASE_URL = "https://www.alphavantage.co/query"
+
+
+@news.route('/news_sentiment', methods=['POST'])
+def fetch_recent_sentiment_endpoint():
     """
-    Fetches the most recent sentiment data for a given topic from the Alpha Vantage API.
+    Flask endpoint to fetch recent news sentiment data.
     """
-    url = f"https://www.alphavantage.co/query?function=NEWS_SENTIMENT&apikey={api_key}&topics={topic}&limit={limit}"
     try:
-        response = requests.get(url)
-        response.raise_for_status()
+        data = request.get_json()
+        apikey = data.get("apikey", os.getenv("YOUR_ALPHA_VANTAGE_API_KEY"))
+        topics = data.get("topics", "technology,ai")
+        limit = data.get("limit", 1000)
+
+
+        if not apikey:
+            return jsonify({"error": "API key is required"}), 400
+
+
+        sentiment_data = fetch_recent_sentiment(apikey, topics, limit)
+        return jsonify(sentiment_data)
+    except Exception as e:
+        return jsonify({"error": f"An error occurred: {e}"}), 500
+
+
+
+
+def fetch_recent_sentiment(apikey, topics, limit=1000):
+    """
+    Fetches recent news sentiment data for the given topics using the Alpha Vantage API.
+   
+    Args:
+        apikey (str): Your Alpha Vantage API key.
+        topics (str): Topics to filter articles by (comma-separated).
+        limit (int): Maximum number of articles to fetch (default 1000).
+
+
+    Returns:
+        dict: JSON response containing articles and sentiment analysis.
+    """
+    try:
+        # Construct the API request URL
+        params = {
+            "function": "NEWS_SENTIMENT",
+            "topics": topics,
+            "limit": limit,
+            "apikey": apikey
+        }
+
+
+        response = requests.get(API_BASE_URL, params=params)
+        if response.status_code != 200:
+            return {"error": f"Failed to fetch news data. Status code: {response.status_code}"}
+
+
         data = response.json()
 
-        # Handle case with no articles
-        if "feed" not in data or not data["feed"]:
-            return {"error": "No news articles found for the given parameters."}
 
-        return {
-            "sentiment_scores": [float(article["overall_sentiment_score"]) for article in data["feed"]],
-            "articles": [
-                {
-                    "title": article["title"],
-                    "summary": article["summary"],
-                    "sentiment_score": float(article["overall_sentiment_score"]),
-                    "published_at": article["time_published"],
-                }
-                for article in data["feed"]
-            ],
-        }
-    except requests.RequestException as e:
-        return {"error": f"API request error: {e}"}
+        # Handle potential errors in the API response
+        if "error" in data:
+            return {"error": data["error"]}
+
+
+        return data  # Return the entire JSON response
     except Exception as e:
-        return {"error": f"Unexpected error: {e}"}
-
-@news.route('/recent', methods=['POST'])
-def get_recent_news_sentiment():
-    """
-    Endpoint to fetch the most recent sentiment data for a given topic.
-    """
-    # Get JSON data from the request
-    request_data = request.get_json()
-    if not request_data:
-        return jsonify({"error": "Invalid or missing JSON data"}), 400
-
-    api_key = request_data.get("api_key")
-    topic = request_data.get("topic", "technology")  # Default topic: technology
-
-    # Validate required inputs
-    if not api_key:
-        return jsonify({"error": "API key is required"}), 400
-    if not topic:
-        return jsonify({"error": "Topic is required"}), 400
-
-    # Fetch the most recent sentiment data
-    result = fetch_recent_sentiment(api_key, topic)
-    if "error" in result:
-        return jsonify({"error": result["error"]}), 500
-
-    return jsonify(result)
+        return {"error": f"An error occurred while fetching news data: {e}"}
