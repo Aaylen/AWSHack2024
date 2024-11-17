@@ -1,0 +1,74 @@
+@import url('https://fonts.googleapis.com/css2?family=Host+Grotesk:wght@400;700&display=swap');
+
+/* General container for the balance sheet */
+.balance-sheet-widget {
+  font-family: 'Host Grotesk', sans-serif;
+  width: 100%;
+  padding: 1rem;
+  background-color: white;
+  border-radius: 20px;
+  border: 1px solid #ddd;
+  /* box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); */
+}
+
+/* Title */
+.balance-sheet-widget h2 {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+  color: #333;
+  text-align: center;
+}
+
+/* Table styles */
+.balance-sheet-widget table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 1rem;
+}
+
+.balance-sheet-widget th {
+  background-color: #f4f4f4;
+  padding: 0.75rem;
+  font-weight: bold;
+  color: #555;
+}
+
+.balance-sheet-widget td {
+  padding: 0.75rem;
+  border-bottom: 1px solid #ddd;
+  color: #333;
+}
+
+.balance-sheet-widget tr:nth-child(even) {
+  background-color: #f9f9f9;
+}
+
+.balance-sheet-widget tr:hover {
+  background-color: #f1f1f1;
+}
+
+/* No data message */
+.balance-sheet-widget p {
+  text-align: center;
+  font-size: 1rem;
+  color: #888;
+  margin-top: 1rem;
+}
+
+/* Table container for responsive behavior */
+.balance-sheet-widget table {
+  overflow-x: auto;
+  display: block;
+}
+
+/* Styling for data cells */
+.balance-sheet-widget td {
+  font-weight: 400;
+}
+
+/* Highlight rows for better readability */
+.balance-sheet-widget tr:hover td {
+  background-color: #e6f7e6;
+}

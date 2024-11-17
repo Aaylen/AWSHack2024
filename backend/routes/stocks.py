@@ -143,6 +143,65 @@ def best_days(data):
 
 
 def balanceSheets(data):
-    ticker_symbol = data['ticker']
-    stock = yf.Ticker(ticker_symbol)
-    balance_sheet = stock.balance_sheet
+    try:
+        ticker_symbol = data['ticker']
+        stock = yf.Ticker(ticker_symbol)
+
+        # Fetch balance sheet data
+        balance_sheet = stock.financials if stock.financials is not None else None
+
+        if balance_sheet is None or balance_sheet.empty:
+            return {"error": "No balance sheet data available"}, 404
+
+        # Convert balance sheet data to JSON format
+        balance_sheet_data = balance_sheet.to_dict(orient='dict')
+
+        # Structure the response data
+        formatted_data = {
+            "totalAssets": balance_sheet_data.get("Total Assets", {}),
+            "totalLiabilities": balance_sheet_data.get("Total Liabilities Net Minority Interest", {}),
+            "stockholdersEquity": balance_sheet_data.get("Common Stock Equity", {}),
+        }
+
+        return jsonify(formatted_data), 200
+    except Exception as e:
+        return {"error": str(e)}, 500
+
+
+@stocks.route('/balance-sheet/<ticker>', methods=['GET'])
+def get_balance_sheet(ticker):
+    try:
+        stock = yf.Ticker(ticker)
+
+        # Fetch balance sheet data
+        balance_sheet = stock.balance_sheet
+
+        if balance_sheet is None or balance_sheet.empty:
+            return jsonify({
+                "error": "No balance sheet data available for this ticker."
+            }), 200
+
+        # Extract relevant data
+        total_assets = balance_sheet.loc["Total Assets"].iloc[0] if "Total Assets" in balance_sheet.index else "N/A"
+        total_liabilities = (
+            balance_sheet.loc["Total Liabilities Net Minority Interest"].iloc[0]
+            if "Total Liabilities Net Minority Interest" in balance_sheet.index
+            else "N/A"
+        )
+        stockholders_equity = (
+            balance_sheet.loc["Common Stock Equity"].iloc[0]
+            if "Common Stock Equity" in balance_sheet.index
+            else "N/A"
+        )
+
+        # Create a response object
+        response_data = {
+            "totalAssets": total_assets,
+            "totalLiabilities": total_liabilities,
+            "stockholdersEquity": stockholders_equity,
+        }
+
+        return jsonify(response_data), 200
+    except Exception as e:
+        print(f"Error occurred: {str(e)}")
+        return jsonify({"error": str(e)}), 500
