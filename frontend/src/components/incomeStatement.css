@@ -1,15 +1,20 @@
+@import url('https://fonts.googleapis.com/css2?family=Host+Grotesk:wght@400;700&display=swap');
+
 .income-container {
-    padding: 20px;
-    max-width: 900px;
-    margin: 0 auto;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    font-family: 'Host Grotesk', sans-serif;
+    width: 100%;
+    padding: 1rem;
+    background-color: white;
+    border-radius: 20px;
+    border: 1px solid #ddd;
+    /* box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); */
 }
 
 .income-title {
-    color: #1a1a1a;
-    margin-bottom: 5px;
-    font-size: 1.8rem;
-    font-weight: 600;
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-bottom: 1rem;
+    color: #000000;
     text-align: center;
 }
 
@@ -23,8 +28,8 @@
 
 .table-container {
     background: white;
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 20px;
+    /* box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); */
     overflow: hidden;
 }
 
@@ -32,6 +37,9 @@
     width: 100%;
     border-collapse: collapse;
     background-color: white;
+    font-size: 1rem;
+    display: block;
+    overflow-x: auto;
 }
 
 .income-table thead {
@@ -40,10 +48,11 @@
 }
 
 .income-table th {
+    background-color: #f4f4f4;
     padding: 14px 16px;
     text-align: left;
-    font-weight: 600;
-    color: #495057;
+    font-weight: bold;
+    color: #555;
 }
 
 .income-table th:last-child {
@@ -54,14 +63,21 @@
     border-bottom: 1px solid #eee;
 }
 
+.income-table tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
 .income-table td {
     padding: 12px 16px;
+    border-bottom: 1px solid #ddd;
+    color: #333;
+    font-weight: 400;
 }
 
 .income-table .label {
     color: #333;
     font-weight: 500;
-    width: 60%;
+    width: 100%;
 }
 
 .income-table .value {
@@ -84,30 +100,27 @@
     font-weight: 600;
 }
 
-.income-loading {
-    text-align: center;
-    padding: 40px;
-    color: #666;
-    font-size: 1.1rem;
-}
-
-.income-error {
-    text-align: center;
-    padding: 40px;
-    color: #dc3545;
-    font-size: 1.1rem;
-}
-
+.income-loading,
+.income-error,
 .income-empty {
     text-align: center;
     padding: 40px;
-    color: #666;
     font-size: 1.1rem;
+    color: #666;
+}
+
+.income-error {
+    color: #dc3545;
 }
 
 /* Hover effect */
 .income-table tbody tr:hover {
-    background-color: #f8f9fa;
+    background-color: #f1f1f1;
+}
+
+/* Highlight rows for better readability */
+.income-table tbody tr:hover td {
+    background-color: #e6f7e6;
 }
 
 /* Responsive design */
@@ -115,12 +128,12 @@
     .income-container {
         padding: 10px;
     }
-    
+
     .income-table td,
     .income-table th {
         padding: 8px 12px;
     }
-    
+
     .income-title {
         font-size: 1.4rem;
     }
