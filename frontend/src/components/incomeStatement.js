@@ -12,9 +12,10 @@ const IncomeStatement = ({ ticker }) => {
             try {
                 setLoading(true);
                 setError(null);
+                console.log('Fetching income data for', ticker);
                 const response = await axios.post('http://localhost:5000/income/endpoint', { ticker: ticker });
                 setIncomeData(response.data.most_recent_quarter);
-                console.log("Response", response.data.most_recent_quarter);
+                console.log('Income data:', response.data.most_recent_quarter);
             } catch (err) {
                 setError(err.message || 'Failed to fetch data');
             } finally {
@@ -28,8 +29,7 @@ const IncomeStatement = ({ ticker }) => {
     }, [ticker]);
 
     const formatNumber = (num) => {
-        if (num === null || num === undefined) return '-';
-        // Convert to millions and format with 2 decimal places
+        if (num === null || num === undefined || isNaN(num)) return '-';
         return new Intl.NumberFormat('en-US', {
             style: 'currency',
             currency: 'USD',
@@ -42,21 +42,20 @@ const IncomeStatement = ({ ticker }) => {
 
     // Custom order for income statement items
     const itemOrder = [
-        'totalRevenue',
-        'costOfRevenue',
-        'grossProfit',
-        'operatingExpenses',
-        'sellingGeneralAdministrative',
-        'researchDevelopment',
-        'operatingIncome',
-        'interestExpense',
-        'totalOtherIncomeExpenseNet',
-        'incomeBeforeTax',
-        'incomeTaxExpense',
-        'netIncome',
-        'netIncomeApplicableToCommonShares',
-        'ebit',
-        'ebitda'
+        'Total Revenue',
+        'Cost Of Revenue',
+        'Gross Profit',
+        'Operating Expense',
+        'Research And Development',
+        'Selling General And Administration',
+        'Operating Income',
+        'Other Non Operating Income Expenses',
+        'Pretax Income',
+        'Tax Provision',
+        'Net Income',
+        'EBIT',
+        'EBITDA',
+        'Normalized EBITDA'
     ];
 
     if (loading) {
@@ -67,21 +66,9 @@ const IncomeStatement = ({ ticker }) => {
         return <div className="income-error">Error: {error}</div>;
     }
 
-    if (!incomeData) {
+    if (!incomeData || !incomeData.data) {
         return <div className="income-empty">No data available</div>;
     }
-
-    const formatLabel = (label) => {
-        // Convert camelCase to Title Case with spaces
-        return label
-            .replace(/([A-Z])/g, ' $1')
-            .replace(/^./, str => str.toUpperCase())
-            .trim()
-            .replace('E B I T D A', 'EBITDA')
-            .replace('E B I T', 'EBIT');
-    };
-
-    const sortedItems = itemOrder.filter(item => incomeData.data[item] !== undefined);
 
     return (
         <div className="income-container">
@@ -100,14 +87,18 @@ const IncomeStatement = ({ ticker }) => {
                         </tr>
                     </thead>
                     <tbody>
-                        {sortedItems.map((key) => (
-                            <tr key={key} className={key === 'netIncome' ? 'highlight-row' : ''}>
-                                <td className="label">{formatLabel(key)}</td>
-                                <td className={`value ${incomeData.data[key] < 0 ? 'negative' : ''}`}>
-                                    {formatNumber(incomeData.data[key])}
-                                </td>
-                            </tr>
-                        ))}
+                        {itemOrder.map((key) => {
+                            const value = incomeData.data[key];
+                            if (value === undefined) return null;
+                            return (
+                                <tr key={key} className={key === 'Net Income' ? 'highlight-row' : ''}>
+                                    <td className="label">{key}</td>
+                                    <td className={`value ${value < 0 ? 'negative' : ''}`}>
+                                        {formatNumber(value)}
+                                    </td>
+                                </tr>
+                            );
+                        })}
                     </tbody>
                 </table>
             </div>

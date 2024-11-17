@@ -8,8 +8,8 @@ CORS(income)  # Enable CORS for this blueprint
 
 @income.route('/endpoint', methods=['POST'])
 def post_endpoint():
+    print("Income endpoint")
     try:
-        data = request.get_json()
         data = request.get_json()
         
         if not data or 'ticker' not in data:
@@ -32,7 +32,7 @@ def post_endpoint():
                 processed_dict[key] = value.item()
             else:
                 processed_dict[key] = value
-                    
+        print(most_recent_quarter.name.strftime('%Y-%m-%d'), processed_dict)  
         return jsonify({
             'ticker': ticker,
             'most_recent_quarter': {
