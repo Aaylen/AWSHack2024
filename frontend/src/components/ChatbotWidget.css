@@ -24,7 +24,7 @@
 }
 
 .user-message .message-text {
-    background-color: #d0eaff;
+    background-color: #d0ffd9;
     margin-left: auto;
     padding: 10px;
     border-radius: 10px;
@@ -90,19 +90,19 @@
 }
 
 .chat-input input:focus {
-    border-color: #0078ff;
+    border-color: #47b611;
 }
 
 .chat-input button {
     padding: 10px;
     border: none;
     border-radius: 15px;
-    background-color: #0078ff;
+    background-color: #54ce1a;
     color: white;
     font-size: 16px;
     cursor: pointer;
 }
 
 .chat-input button:active {
-    background-color: #005bb5;
+    background-color: #3b9110;
 }
