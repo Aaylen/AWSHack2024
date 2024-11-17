@@ -13,7 +13,7 @@ const CashflowStatement = ({ ticker }) => {
                 setLoading(true);
                 setError(null);
                 console.log('Fetching cashflow data for', ticker);
-                const response = await axios.post('https://4e10-129-210-115-236.ngrok-free.app/cashflow/endpoint', { ticker: ticker });
+                const response = await axios.post('http://localhost:5000/cashflow/endpoint', { ticker: ticker });
                 setCashflowData(response.data.most_recent_quarter);
                 console.log('Cashflow data:', response.data.most_recent_quarter);
             } catch (err) {
