@@ -1,10 +1,52 @@
 /* Import the Host Grotesk font */
 @import url('https://fonts.googleapis.com/css2?family=Host+Grotesk:wght@400;700&display=swap');
 
+/* Reset margin and padding to ensure the header spans the full width of the page */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
 .app-container {
   display: flex;
+  flex-direction: column;
   height: 100vh;
-  padding: 0px;
+}
+
+.app-header {
+  font-family: 'Host Grotesk', sans-serif;
+  font-weight: 700;
+  font-size: 24px;
+  padding: 10px;
+  background-color: #57CC1A;
+  color: white;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.header-content span {
+  flex: 1;
+  text-align: center;
+}
+
+.app-logo {
+  width: 50px; /* Adjust the logo size as needed */
+  height: auto;
+  margin-right: 20px;
+}
+
+.content {
+  display: flex;
+  flex-grow: 1;
 }
 
 .left-column {
@@ -14,7 +56,6 @@
   align-items: center;
   overflow-y: auto;
   overflow-x: hidden;
-  /* background-color: #f0f0f0; */
   padding: 20px;
 }
 
