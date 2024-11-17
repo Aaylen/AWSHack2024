@@ -1,19 +1,18 @@
 import React from 'react';
-import Chart from './components/Chart';
 import ChatbotWidget from './components/ChatbotWidget';
-import './components/styles.css';
+import './App.css';
 
 const App = () => {
-  return (
-      <div className="app-container">
-        <div className="chart-section">
-          <Chart />
+    return (
+        <div className="app-container">
+            <div className="left-column">
+                {/* Left column content will be added later */}
+            </div>
+            <div className="right-column">
+                <ChatbotWidget />
+            </div>
         </div>
-        <div className="chatbot-section">
-          <ChatbotWidget />
-        </div>
-      </div>
-  );
+    );
 };
 
 export default App;
