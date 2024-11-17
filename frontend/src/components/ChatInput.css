@@ -12,12 +12,13 @@
     border: 1px solid #ddd;
     border-radius: 30px;
     margin-right: 10px;
+    margin-left: 10px;
     font-family: 'Host Grotesk', sans-serif;
     font-size: 18px;
 }
 
 .chat-input button {
-    background-color: #2795ef;
+    background-color: #007de7;
     color: white;
     border: none;
     padding: 9px 15px;
