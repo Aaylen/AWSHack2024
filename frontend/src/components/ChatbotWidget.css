@@ -2,11 +2,12 @@
     width: 90%;
     height: 90%;
     border: 1px solid #ddd;
-    border-radius: 20px;
+    border-radius: 27px;
     display: flex;
     flex-direction: column;
-    padding: 20px;
+    padding: 15px;
     background-color: white;
+    font-family: 'Host Grotesk', sans-serif;
 }
 
 .chat-messages {
@@ -23,16 +24,17 @@
 }
 
 .user-message .message-text {
-    background-color: #e0f7fa;
+    background-color: #d0eaff;
     margin-left: auto;
+    padding: 10px;
 }
 
 .ai-message .message-text {
-    background-color: #ffe0b2;
+    /*background-color: #efefef;*/
 }
 
 .message-text {
-    max-width: 60%;
+    /*max-width: 85%;*/
     padding: 10px;
     border-radius: 10px;
 }
