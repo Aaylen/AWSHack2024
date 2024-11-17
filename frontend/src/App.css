@@ -8,13 +8,16 @@
 }
 
 .left-column {
-  width: 40%;
-  background-color: #f0f0f0;
-  /*padding: 20px;*/
+  width: 60%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* background-color: #f0f0f0; */
+  padding: 20px;
 }
 
 .right-column {
-  width: 60%;
+  width: 40%;
   display: flex;
   align-items: center;
   justify-content: center;

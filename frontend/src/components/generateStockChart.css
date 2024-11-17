@@ -1,12 +1,15 @@
 /* styles.css */
+@import url('https://fonts.googleapis.com/css2?family=Host+Grotesk:wght@400;700&display=swap');
 
 /* General container */
 .stock-chart-container {
+  font-family: 'Host Grotesk', sans-serif;
   width: 100%;
   padding: 1rem;
   background-color: white;
-  border-radius: 0.5rem;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border-radius: 20px;
+  border: 1px solid #ddd;
+  /* box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); */
 }
 
 /* Title and price section */
@@ -41,19 +44,38 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 1rem;
+  padding-left: 7rem;
+  padding-right: 7rem;
 }
 
 .timeframe-buttons button {
-  padding: 0.25rem 0.75rem;
-  border-radius: 0.375rem;
-  background-color: #f3f4f6;
-  color: #4b5563;
+  margin-top: -4rem;
+  background-color: transparent;
+  border: none;
+  color: #5d5d5d;
+  font-weight: 400;
   cursor: pointer;
+  position: relative;
+}
+
+.timeframe-buttons button:hover {
+  color: #47b611;
 }
 
 .timeframe-buttons button.selected {
-  background-color: #e0f2fe;
-  color: #2563eb;
+  color: #47b611;
+  font-weight: bold;
+}
+
+.timeframe-buttons button.selected::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background-color: #47b611;
+  border-radius: 2px;
 }
 
 /* Chart container */
