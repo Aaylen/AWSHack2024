@@ -14,9 +14,7 @@ const App = () => {
         <div className="app-container">
             <div className="left-column max-h-screen sticky top-0 overflow-y-auto">
                 <StockChart ticker={ticker} />
-                
                 <BalanceSheetWidget ticker={ticker} />
-
                 <IncomeStatement ticker={ticker} />
                 <CashflowStatement ticker={ticker} />
 

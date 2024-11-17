@@ -25,8 +25,11 @@ const BalanceSheetWidget = ({ ticker }) => {
         }
     }, [ticker]);
 
-    if (loading) return <div>Loading balance sheet...</div>;
-    if (error) return <div>{error}</div>;
+    if (loading) return;
+    if (error) return;
+    if (!balanceSheet || !balanceSheet.data) {
+        return;
+    }
 
     return (
         <div className="balance-sheet-widget">
