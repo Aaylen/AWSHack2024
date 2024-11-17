@@ -1,10 +1,7 @@
 from flask import Blueprint, jsonify, request
 from flask_cors import CORS
 import yfinance as yf
-import requests
-from flask import Flask, jsonify
-from datetime import datetime, timedelta
-import pandas as pd
+from datetime import datetime
 
 stocks = Blueprint('stocks', __name__)
 CORS(stocks)  # Enable CORS for this blueprint
@@ -99,26 +96,45 @@ def format_metric(value):
 
 def average_return(data):
     tickerSymbol = data['stock']
+    start_date = data['start_date']
+    end_date = data['end_date']
+    
+    # Get stock data for the given ticker and date range
     stock = yf.Ticker(tickerSymbol)
-    startDate = data['startDate']
-    endDate = data['endDate']
-    historical_data = stock.history(start=startDate, end=endDate)
-    average = historical_data['Close'].mean()
-    return average
+    historical_data = stock.history(start=start_date, end=end_date)
+    
+    # Calculate the average percentage return
+    historical_data['Pct Change'] = historical_data['Close'].pct_change() * 100
+    avg_return = historical_data['Pct Change'].mean()
+    
+    return float(avg_return)
 
-
-def bestDays(data):
-    startDate = data['startDate']
-    endDate = data['endDate']
+def best_days(data):
+    start_date = data['start_date']
+    end_date = data['end_date']
     tickerSymbol = data['stock']
-    days = data['days']
+    days = int(data['days'])
+    
+    # Get stock data for the given ticker and date range
     stock = yf.Ticker(tickerSymbol)
-    historical_data = stock.history(start=startDate, end=endDate)
-    sorted_data = historical_data.sort_values(by='Close', ascending=False)
-    top_days = sorted_data.head(days).index.strftime('%Y-%m-%d').tolist()
-    return top_days
-    stock = yf.Ticker(tickerSymbol)
-    historical_data = stock.history(start=startDate, end=endDate)
-
-
-
+    historical_data = stock.history(start=start_date, end=end_date)
+    
+    # Calculate the daily percentage change in closing price
+    historical_data['Pct Change'] = historical_data['Close'].pct_change() * 100
+    
+    # Add a column for the previous day's close
+    historical_data['Previous Close'] = historical_data['Close'].shift(1)
+    
+    # Sort the data by the percentage change in descending order
+    sorted_data = historical_data.sort_values(by='Pct Change', ascending=False)
+    
+    # Get the top 'days' number of rows (days with the highest percentage gains)
+    top_days = sorted_data.head(days)
+    
+    # Create a list of tuples with date, previous close, close, and percentage gain
+    result = [
+        (date.strftime('%Y-%m-%d'), row['Previous Close'], row['Close'], row['Pct Change']) 
+        for date, row in top_days.iterrows()
+    ]
+    
+    return result
