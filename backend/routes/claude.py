@@ -29,7 +29,7 @@ def send_message_to_claude(user_message):
         response = client.converse(
             modelId=model_id,
             messages=conversation,
-            inferenceConfig={"maxTokens": 2000, "temperature": 0.3},
+            inferenceConfig={"maxTokens": 2000, "temperature": 0.5},
             additionalModelRequestFields={"top_k": 50},
         )
         return response.get("output", {}).get("message", {}).get("content", [{}])[0].get("text", "No response")
@@ -52,104 +52,85 @@ def analyze():
         analysis_prompt = f"""
         Analyze the following question: '{user_question}'
         Is the user asking about:
-        1. News
-        2. Stock data
-        3. General query - 20 word MAXIUM FOR GENERAL QUERY YOU CAN SAY
+        1. General stock inquiry (e.g., "How is the market today?")
+        2. Specific stock statistics (e.g., "Show me AAPL chart").
+        Respond with "general" or "specific".
         """
-        intent = send_message_to_claude(analysis_prompt).lower().strip()
-        print(intent)
-        # Route request
-        if intent == "news":
-            return handle_news_request(user_question)
-        elif intent == "stock":
-            return handle_stock_request(user_question)
+        classification = send_message_to_claude(analysis_prompt).lower().strip()
+        print(f"Classification: {classification}")
+
+        if classification == "general":
+            return handle_general_stock_question(user_question)
+        elif classification == "specific":
+            return handle_specific_stock_question(user_question)
         else:
-            ai_response = send_message_to_claude(user_question)
-            return jsonify({"response": ai_response})
+            return jsonify({"error": "Unable to classify the question."}), 400
     except Exception as e:
         return jsonify({"error": f"An unexpected error occurred: {e}"}), 500
 
 
-def handle_news_request(user_question):
+def handle_general_stock_question(user_question):
     """
-    Processes a news request by extracting the relevant topic.
+    Handles general stock inquiries and provides a summary.
     """
-    # Extract topic from the user question
-    analysis_prompt = f"""
-    Extract the main topic from the following question: '{user_question}'
-    Use one of the following predefined topics: blockchain, earnings, ipo, mergers_and_acquisitions,
-    financial_markets, economy_fiscal, economy_monetary, economy_macro, energy_transportation,
-    finance, life_sciences, manufacturing, real_estate, retail_wholesale, technology.
-    Respond with the topic name only.
+    general_prompt = f"""
+    Provide a brief summary of the current stock market based on the question: '{user_question}'.
+    Keep the response under 25 words.
     """
-    topic = send_message_to_claude(analysis_prompt).lower().strip()
-    
-    # Default topic to "technology" if none is extracted
-    topic = topic if topic in [
-        "blockchain", "earnings", "ipo", "mergers_and_acquisitions",
-        "financial_markets", "economy_fiscal", "economy_monetary", "economy_macro",
-        "energy_transportation", "finance", "life_sciences", "manufacturing",
-        "real_estate", "retail_wholesale", "technology"
-    ] else "technology"
-    print(topic)
-    apikey = os.getenv("YOUR_ALPHA_VANTAGE_API_KEY")
-    time_from = datetime.utcnow().strftime("%Y%m%dT%H%M")
-
-    try:
-        # Call the Alpha Vantage News API
-        response = requests.get(
-            "https://www.alphavantage.co/query",
-            params={
-                "function": "NEWS_SENTIMENT",
-                "topics": topic,
-                "time_from": time_from,
-                "limit": 100,
-                "apikey": apikey,
-            },
-        )
-        response.raise_for_status()
-        news_data = response.json()
-        print(news_data)
-
-        # Analyze sentiment and provide advice
-        response = analyze_news_data(news_data, user_question, topic)
-        print(response)
-        return response
-    except Exception as e:
-        return jsonify({"error": f"Failed to fetch news data: {e}"}), 500
-
-
-def analyze_news_data(news_data, user_question, topic):
-    """
-    Analyzes the news data to find the best matching headline and provides a response.
-    """
-    analysis_prompt = f"""
-    I want you to analyze this news data, I want you to also consider the
-    user's question - '{user_question}' - and the news data 
-    '{news_data}' that is just headlines and has an overall sentiment of '{topic}' with
-    the sentiment score. What I want you to do is look at this data and mention the best 
-    headline that correlates to the user question. Use the overall sentiment score to help
-    answer the user's question - maxium 25 words you can say THIS IS EXTREMELY IMPORT MAXIUM 25 WORDS
-    YOU CAN SAY.
-    """
-    response = send_message_to_claude(analysis_prompt)
+    response = send_message_to_claude(general_prompt)
     return jsonify({"response": response})
 
 
-def handle_stock_request(user_question):
+def handle_specific_stock_question(user_question):
     """
-    Processes a stock request.
+    Processes specific stock requests.
     """
-    stock_data = {
-        "action": "display_stock",
-        "ticker": "AAPL",  # Example ticker
-        "entry": "5d",  # Fetch 5 days of stock data
-    }
+    # Extract ticker and intent using Claude
+    analysis_prompt = f"""
+    From the following question: '{user_question}', extract:
+    1. The stock ticker symbol (e.g., AAPL, MSFT, etc.).
+    2. The user's intent (e.g., "show chart", "average return", "best days").
+    Respond with the stock ticker followed by the intent in this format: 'TICKER INTENT' only.
+    """
+    extracted_info = send_message_to_claude(analysis_prompt).strip()
     try:
+        # Parse the extracted information
+        ticker, intent = extracted_info.split()
+        ticker = ticker.upper()
+        intent = intent.lower()
+
+        # Build stock request payload
+        if intent == "chart":
+            stock_data = {"action": "display_stock", "ticker": ticker, "entry": "5d"}
+        elif intent == "average_return":
+            stock_data = {
+                "action": "average_return",
+                "stock": ticker,
+                "start_date": "2023-01-01",
+                "end_date": datetime.now().strftime("%Y-%m-%d"),
+            }
+        elif intent == "best_days":
+            stock_data = {
+                "action": "best_days",
+                "stock": ticker,
+                "start_date": "2023-01-01",
+                "end_date": datetime.now().strftime("%Y-%m-%d"),
+                "days": 5,
+            }
+        else:
+            return jsonify({"error": f"Unknown intent: {intent}"}), 400
+
+        # Debug: Log the stock payload
+        print(f"Stock payload: {stock_data}")
+
+        # Call the stocks API endpoint
         response = requests.post(
             "http://127.0.0.1:5000/stocks/endpoint", json=stock_data
         )
         response.raise_for_status()
-        return response.json()
+        stock_response = response.json()
+
+        # Return stock data directly
+        return jsonify({"response": stock_response})
     except Exception as e:
-        return jsonify({"error": f"Failed to fetch stock data: {e}"}), 500
+        return jsonify({"error": f"Failed to process stock request: {e}"}), 500
