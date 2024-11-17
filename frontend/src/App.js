@@ -1,5 +1,6 @@
 import React from 'react';
 import ChatbotWidget from './components/ChatbotWidget';
+import StockChart from './components/generateStockChart.jsx';
 import './App.css';
 
 const App = () => {
@@ -7,6 +8,7 @@ const App = () => {
         <div className="app-container">
             <div className="left-column">
                 {/* Left column content will be added later */}
+                <StockChart ticker="AAPL" />
             </div>
             <div className="right-column">
                 <ChatbotWidget />

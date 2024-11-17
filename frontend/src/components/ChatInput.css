@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Host+Grotesk:wght@400;700&display=swap');
+
 .chat-input {
     display: flex;
     align-items: center;
@@ -6,13 +8,17 @@
 .chat-input input {
     flex: 1;
     padding: 10px;
+    padding-left: 18px;
     border: 1px solid #ddd;
-    border-radius: 20px;
+    border-radius: 30px;
     margin-right: 10px;
+    margin-left: 10px;
+    font-family: 'Host Grotesk', sans-serif;
+    font-size: 18px;
 }
 
 .chat-input button {
-    background-color: #007bff;
+    background-color: #007de7;
     color: white;
     border: none;
     padding: 9px 15px;
@@ -21,5 +27,5 @@
 }
 
 .send-icon {
-    font-size: 16px;
+    font-size: 22px;
 }
