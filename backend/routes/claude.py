@@ -54,11 +54,10 @@ def analyze():
         Is the user asking about:
         1. News
         2. Stock data
-        3. General query
-        Respond with "news", "stock", or "general" only.
+        3. General query - 20 word MAXIUM FOR GENERAL QUERY YOU CAN SAY
         """
         intent = send_message_to_claude(analysis_prompt).lower().strip()
-
+        print(intent)
         # Route request
         if intent == "news":
             return handle_news_request(user_question)
@@ -92,7 +91,7 @@ def handle_news_request(user_question):
         "energy_transportation", "finance", "life_sciences", "manufacturing",
         "real_estate", "retail_wholesale", "technology"
     ] else "technology"
-
+    print(topic)
     apikey = os.getenv("YOUR_ALPHA_VANTAGE_API_KEY")
     time_from = datetime.utcnow().strftime("%Y%m%dT%H%M")
 
@@ -110,22 +109,31 @@ def handle_news_request(user_question):
         )
         response.raise_for_status()
         news_data = response.json()
+        print(news_data)
 
         # Analyze sentiment and provide advice
-        sentiment_score = news_data.get("sentiment_score", 0)
-        if sentiment_score > 0.5:
-            advice = "Based on the news sentiment, it seems like a good time to invest in this sector."
-        else:
-            advice = "The news sentiment suggests caution when considering investments in this sector."
-
-        return jsonify({
-            "topic": topic,
-            "sentiment_score": sentiment_score,
-            "advice": advice,
-            "articles": news_data.get("articles", [])
-        })
+        response = analyze_news_data(news_data, user_question, topic)
+        print(response)
+        return response
     except Exception as e:
         return jsonify({"error": f"Failed to fetch news data: {e}"}), 500
+
+
+def analyze_news_data(news_data, user_question, topic):
+    """
+    Analyzes the news data to find the best matching headline and provides a response.
+    """
+    analysis_prompt = f"""
+    I want you to analyze this news data, I want you to also consider the
+    user's question - '{user_question}' - and the news data 
+    '{news_data}' that is just headlines and has an overall sentiment of '{topic}' with
+    the sentiment score. What I want you to do is look at this data and mention the best 
+    headline that correlates to the user question. Use the overall sentiment score to help
+    answer the user's question - maxium 25 words you can say THIS IS EXTREMELY IMPORT MAXIUM 25 WORDS
+    YOU CAN SAY.
+    """
+    response = send_message_to_claude(analysis_prompt)
+    return jsonify({"response": response})
 
 
 def handle_stock_request(user_question):

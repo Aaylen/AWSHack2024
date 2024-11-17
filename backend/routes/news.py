@@ -15,6 +15,7 @@ def fetch_recent_sentiment_endpoint():
     """
     Flask endpoint to fetch recent news sentiment data.
     """
+    print("Fetching recent news sentiment data...")
     try:
         data = request.get_json()
         apikey = data.get("apikey", os.getenv("YOUR_ALPHA_VANTAGE_API_KEY"))
