@@ -49,107 +49,26 @@ def analyze():
             return jsonify({"error": "No question provided"}), 400
 
         # Determine intent
-        analysis_prompt = f"""
-        Analyze the following question: '{user_question}'
-        Is the user asking about:
-        1. News
-        2. Stock data
-        3. General query - 20 word MAXIUM FOR GENERAL QUERY YOU CAN SAY
+        print("User question:", user_question)
+        prompt = f"""
+        Correlate the user's question with a stock ticker symbol. 
+        Give a one word response with that ticker symbol.
+        If there is no related stock ticker symbol, respond with 'none'.
+        {user_question}
         """
-        intent = send_message_to_claude(analysis_prompt).lower().strip()
-        print(intent)
+        ticker = send_message_to_claude(prompt).lower().strip()
+        print("Ticker:", ticker)
         # Route request
-        if intent == "news":
-            return handle_news_request(user_question)
-        elif intent == "stock":
-            return handle_stock_request(user_question)
-        else:
-            ai_response = send_message_to_claude(user_question)
-            return jsonify({"response": ai_response})
+        prompt = f"""
+        Give an overview of the company with the ticker symbol {ticker}
+        Limit the response to 3 sentences.
+        """
+        response = send_message_to_claude(prompt)
+        return jsonify({
+            "response": response,
+            "ticker": ticker
+            })
     except Exception as e:
         return jsonify({"error": f"An unexpected error occurred: {e}"}), 500
-
-
-def handle_news_request(user_question):
-    """
-    Processes a news request by extracting the relevant topic.
-    """
-    # Extract topic from the user question
-    analysis_prompt = f"""
-    Extract the main topic from the following question: '{user_question}'
-    Use one of the following predefined topics: blockchain, earnings, ipo, mergers_and_acquisitions,
-    financial_markets, economy_fiscal, economy_monetary, economy_macro, energy_transportation,
-    finance, life_sciences, manufacturing, real_estate, retail_wholesale, technology.
-    Respond with the topic name only.
-    """
-    topic = send_message_to_claude(analysis_prompt).lower().strip()
     
-    # Default topic to "technology" if none is extracted
-    topic = topic if topic in [
-        "blockchain", "earnings", "ipo", "mergers_and_acquisitions",
-        "financial_markets", "economy_fiscal", "economy_monetary", "economy_macro",
-        "energy_transportation", "finance", "life_sciences", "manufacturing",
-        "real_estate", "retail_wholesale", "technology"
-    ] else "technology"
-    print(topic)
-    apikey = os.getenv("YOUR_ALPHA_VANTAGE_API_KEY")
-    time_from = datetime.utcnow().strftime("%Y%m%dT%H%M")
 
-    try:
-        # Call the Alpha Vantage News API
-        response = requests.get(
-            "https://www.alphavantage.co/query",
-            params={
-                "function": "NEWS_SENTIMENT",
-                "topics": topic,
-                "time_from": time_from,
-                "limit": 100,
-                "apikey": apikey,
-            },
-        )
-        response.raise_for_status()
-        news_data = response.json()
-        print(news_data)
-
-        # Analyze sentiment and provide advice
-        response = analyze_news_data(news_data, user_question, topic)
-        print(response)
-        return response
-    except Exception as e:
-        return jsonify({"error": f"Failed to fetch news data: {e}"}), 500
-
-
-def analyze_news_data(news_data, user_question, topic):
-    """
-    Analyzes the news data to find the best matching headline and provides a response.
-    """
-    analysis_prompt = f"""
-    I want you to analyze this news data, I want you to also consider the
-    user's question - '{user_question}' - and the news data 
-    '{news_data}' that is just headlines and has an overall sentiment of '{topic}' with
-    the sentiment score. What I want you to do is look at this data and mention the best 
-    headline that correlates to the user question. Use the overall sentiment score to help
-    answer the user's question - maxium 25 words you can say THIS IS EXTREMELY IMPORT MAXIUM 25 WORDS
-    YOU CAN SAY.
-    """
-    response = send_message_to_claude(analysis_prompt)
-    return jsonify({"response": response})
-
-
-def handle_stock_request(user_question):
-    """
-    Processes a stock request.
-    """
-    stock_data = {
-        "action": "display_stock",
-        "ticker": "AAPL",  # Example ticker
-        "entry": "5d",  # Fetch 5 days of stock data
-    }
-    try:
-        response = requests.post(
-            "http://127.0.0.1:5000/stocks/endpoint", json=stock_data
-        )
-        response.raise_for_status()
-        return response.json()
-    except Exception as e:
-        return jsonify({"error": f"Failed to fetch stock data: {e}"}), 500
