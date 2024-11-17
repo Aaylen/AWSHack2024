@@ -8,7 +8,7 @@ const App = () => {
         <div className="app-container">
             <div className="left-column">
                 {/* Left column content will be added later */}
-                <StockChart ticker="AAPL" />
+                <StockChart ticker= 'AAPL' />
             </div>
             <div className="right-column">
                 <ChatbotWidget />

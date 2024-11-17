@@ -23,6 +23,8 @@ def post_endpoint():
             return jsonify({'average_return': average_return(data)}), 200
         elif data['action'] == 'best_days':
             return jsonify({'best_days': best_days(data)}), 200
+        elif data['action'] == 'balanceSheets':
+            return jsonify({'balanceSheets': balanceSheets(data)}), 200
         else:
             return jsonify({'error': 'Invalid action specified'}), 400
 
@@ -138,3 +140,9 @@ def best_days(data):
     ]
     
     return result
+
+
+def balanceSheets(data):
+    ticker_symbol = data['ticker']
+    stock = yf.Ticker(ticker_symbol)
+    balance_sheet = stock.balance_sheet

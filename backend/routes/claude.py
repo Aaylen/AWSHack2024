@@ -29,7 +29,7 @@ def send_message_to_claude(user_message):
         response = client.converse(
             modelId=model_id,
             messages=conversation,
-            inferenceConfig={"maxTokens": 2000, "temperature": 0.3},
+            inferenceConfig={"maxTokens": 2000, "temperature": 0.5},
             additionalModelRequestFields={"top_k": 50},
         )
         return response.get("output", {}).get("message", {}).get("content", [{}])[0].get("text", "No response")
